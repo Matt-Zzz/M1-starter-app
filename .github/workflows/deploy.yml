@@ -28,14 +28,14 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          script: |  
+          script: |
             cd /home/ubuntu/cpen321-m1-backend
             
             cat > .env <<EOF
             PORT=${{ secrets.PROD_PORT }}
-            MONGODB_URI=${{ secrets.PROD_DB_URI }}
-            JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}
-            GOOGLE_CLIENT_ID=${{ secrets.PROD_GOOGLE_CLIENT_ID }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             EOF
             
             chmod 600 .env
