@@ -171,12 +171,44 @@ class AuthViewModel @Inject constructor(
 
     fun handleAccountDeletion() {
         viewModelScope.launch {
-            authRepository.clearToken()
-            _uiState.value = AuthUiState(
-                isAuthenticated = false,
-                isCheckingAuth = false,
-                shouldSkipAuthCheck = true // Skip auth check after manual sign out
-            )
+            try {
+                val result = authRepository.deleteAccount()
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = AuthUiState(
+                            isAuthenticated = false,
+                            isCheckingAuth = false,
+                            shouldSkipAuthCheck = true // Skip auth check after manual sign out
+                        )
+                    },
+                    onFailure = { error ->
+                        _uiState.value = _uiState.value.copy(
+                            errorMessage = error.message ?: "Failed to delete account"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = e.message ?: "Failed to delete account"
+                )
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            try {
+                authRepository.clearToken()
+                _uiState.value = AuthUiState(
+                    isAuthenticated = false,
+                    isCheckingAuth = false,
+                    shouldSkipAuthCheck = true // Skip auth check after manual sign out
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = e.message ?: "Failed to sign out"
+                )
+            }
         }
     }
 

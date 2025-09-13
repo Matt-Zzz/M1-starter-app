@@ -9,6 +9,7 @@ interface AuthRepository {
     suspend fun signInWithGoogle(context: Context): Result<GoogleIdTokenCredential>
     suspend fun googleSignIn(tokenId: String): Result<AuthData>
     suspend fun googleSignUp(tokenId: String): Result<AuthData>
+    suspend fun deleteAccount(): Result<Unit>
     suspend fun clearToken(): Result<Unit>
     suspend fun doesTokenExist(): Boolean
     suspend fun getStoredToken(): String?

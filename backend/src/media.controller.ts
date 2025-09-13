@@ -4,6 +4,7 @@ import logger from './logger.util';
 import { MediaService } from './media.service';
 import { UploadImageRequest, UploadImageResponse } from './media.types';
 import { sanitizeInput } from './sanitizeInput.util';
+import { userModel } from './user.model';
 
 export class MediaController {
   async uploadImage(
@@ -24,6 +25,14 @@ export class MediaController {
         sanitizedFilePath,
         user._id.toString()
       );
+
+      // Update user's profilePicture field in database
+      const updatedUser = await userModel.update(user._id, { profilePicture: image });
+      if (!updatedUser) {
+        return res.status(500).json({
+          message: 'Failed to update user profile picture',
+        });
+      }
 
       res.status(200).json({
         message: 'Image uploaded successfully',

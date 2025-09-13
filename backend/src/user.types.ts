@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import z from 'zod';
+import { z } from 'zod';
 import { HOBBIES } from './hobbies';
 
 // User model

@@ -180,6 +180,20 @@ class NavigationStateManager @Inject constructor() {
     }
 
     /**
+     * Handle sign out
+     */
+    fun handleSignOut() {
+        _navigationState.value = _navigationState.value.copy(isNavigating = true)
+
+        updateAuthenticationState(
+            isAuthenticated = false,
+            needsProfileCompletion = false,
+            isLoading = false
+        )
+        navigateToAuthWithMessage("Signed out successfully!")
+    }
+
+    /**
      * Handle profile completion
      */
     fun handleProfileCompletion() {

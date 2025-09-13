@@ -1,35 +1,9 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: mongo_instance
+  api:
+    build: .
+    container_name: cpen321-api
     restart: unless-stopped
     ports:
-      - "${MONGO_HOST_PORT:-27017}:27017"   # avoid exposing on EC2 unless needed
-    volumes:
-      - mongo_data:/data/db
-    healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ ping: 1 }).ok' | grep 1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        PORT: ${PORT:-3000}
-    container_name: cpen321_app
-    restart: unless-stopped
-    environment:
-      DB_URI: ${DB_URI:-mongodb://mongo:27017/todos}  # default to local mongo service
-      PORT: ${PORT:-3000}
-    ports:
-      - "${HOST_PORT:-80}:${PORT:-3000}"
-    depends_on:
-      mongo:
-        condition: service_healthy
-    command: npm start
-
-volumes:
-  mongo_data:
+      - "80:3000"   # map HTTP 80 -> container 3000
+    env_file:
+      - .env

@@ -33,9 +33,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.ui.components.UpcomingMilestonesCard
+import com.cpen321.usermanagement.ui.components.TodaysScheduleCard
+import com.cpen321.usermanagement.data.remote.dto.CreateMilestoneRequest
+import com.cpen321.usermanagement.data.remote.dto.CreateTaskRequest
 import com.cpen321.usermanagement.ui.components.MessageSnackbar
 import com.cpen321.usermanagement.ui.components.MessageSnackbarState
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.CalendarViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileUiState
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
 import com.cpen321.usermanagement.ui.theme.LocalSpacing
@@ -48,6 +53,7 @@ data class ProfileScreenActions(
     val onBackClick: () -> Unit,
     val onManageProfileClick: () -> Unit,
     val onManageHobbiesClick: () -> Unit,
+    val onSignOutClick: () -> Unit,
     val onAccountDeleted: () -> Unit
 )
 
@@ -55,6 +61,7 @@ private data class ProfileScreenCallbacks(
     val onBackClick: () -> Unit,
     val onManageProfileClick: () -> Unit,
     val onManageHobbiesClick: () -> Unit,
+    val onSignOutClick: () -> Unit,
     val onDeleteAccountClick: () -> Unit,
     val onDeleteDialogDismiss: () -> Unit,
     val onDeleteDialogConfirm: () -> Unit,
@@ -66,9 +73,11 @@ private data class ProfileScreenCallbacks(
 fun ProfileScreen(
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel,
+    calendarViewModel: CalendarViewModel,
     actions: ProfileScreenActions
 ) {
     val uiState by profileViewModel.uiState.collectAsState()
+    val calendarUiState by calendarViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     // Dialog state
@@ -82,14 +91,17 @@ fun ProfileScreen(
         profileViewModel.clearError()
     }
 
-    ProfileContent(
-        uiState = uiState,
-        dialogState = dialogState,
-        snackBarHostState = snackBarHostState,
-        callbacks = ProfileScreenCallbacks(
+            ProfileContent(
+                uiState = uiState,
+                calendarUiState = calendarUiState,
+                calendarViewModel = calendarViewModel,
+                dialogState = dialogState,
+                snackBarHostState = snackBarHostState,
+                callbacks = ProfileScreenCallbacks(
             onBackClick = actions.onBackClick,
             onManageProfileClick = actions.onManageProfileClick,
             onManageHobbiesClick = actions.onManageHobbiesClick,
+            onSignOutClick = actions.onSignOutClick,
             onDeleteAccountClick = {
                 dialogState = dialogState.copy(showDeleteDialog = true)
             },
@@ -111,6 +123,8 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     uiState: ProfileUiState,
+    calendarUiState: com.cpen321.usermanagement.ui.viewmodels.CalendarUiState,
+    calendarViewModel: CalendarViewModel,
     dialogState: ProfileDialogState,
     snackBarHostState: SnackbarHostState,
     callbacks: ProfileScreenCallbacks,
@@ -136,8 +150,11 @@ private fun ProfileContent(
         ProfileBody(
             paddingValues = paddingValues,
             isLoading = uiState.isLoadingProfile,
+            calendarUiState = calendarUiState,
+            calendarViewModel = calendarViewModel,
             onManageProfileClick = callbacks.onManageProfileClick,
             onManageHobbiesClick = callbacks.onManageHobbiesClick,
+            onSignOutClick = callbacks.onSignOutClick,
             onDeleteAccountClick = callbacks.onDeleteAccountClick
         )
     }
@@ -181,8 +198,11 @@ private fun ProfileTopBar(
 private fun ProfileBody(
     paddingValues: PaddingValues,
     isLoading: Boolean,
+    calendarUiState: com.cpen321.usermanagement.ui.viewmodels.CalendarUiState,
+    calendarViewModel: CalendarViewModel,
     onManageProfileClick: () -> Unit,
     onManageHobbiesClick: () -> Unit,
+    onSignOutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -200,8 +220,11 @@ private fun ProfileBody(
 
             else -> {
                 ProfileMenuItems(
+                    calendarUiState = calendarUiState,
+                    calendarViewModel = calendarViewModel,
                     onManageProfileClick = onManageProfileClick,
                     onManageHobbiesClick = onManageHobbiesClick,
+                    onSignOutClick = onSignOutClick,
                     onDeleteAccountClick = onDeleteAccountClick
                 )
             }
@@ -211,8 +234,11 @@ private fun ProfileBody(
 
 @Composable
 private fun ProfileMenuItems(
+    calendarUiState: com.cpen321.usermanagement.ui.viewmodels.CalendarUiState,
+    calendarViewModel: CalendarViewModel,
     onManageProfileClick: () -> Unit,
     onManageHobbiesClick: () -> Unit,
+    onSignOutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -226,12 +252,52 @@ private fun ProfileMenuItems(
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(spacing.medium)
     ) {
+                // Calendar Components
+                UpcomingMilestonesCard(
+                    milestones = calendarUiState.milestones,
+                    isLoading = calendarUiState.isLoadingMilestones,
+                    onAddMilestone = {
+                        // TODO: Show add milestone dialog
+                        val testMilestone = CreateMilestoneRequest(
+                            title = "Test Milestone",
+                            description = "This is a test milestone",
+                            dueDate = "2024-12-25",
+                            dueTime = "12:00",
+                            isAllDay = false
+                        )
+                        calendarViewModel.createMilestone(testMilestone)
+                    },
+                    onDeleteMilestone = { eventId ->
+                        calendarViewModel.deleteEvent(eventId)
+                    }
+                )
+
+                TodaysScheduleCard(
+                    events = calendarUiState.todaysEvents,
+                    isLoading = calendarUiState.isLoadingSchedule,
+                    onAddTask = {
+                        // TODO: Show add task dialog
+                        val testTask = CreateTaskRequest(
+                            title = "Test Task",
+                            description = "This is a test task",
+                            dueDate = "2024-12-25",
+                            dueTime = "14:00",
+                            isAllDay = false
+                        )
+                        calendarViewModel.createTask(testTask)
+                    },
+                    onDeleteEvent = { eventId ->
+                        calendarViewModel.deleteEvent(eventId)
+                    }
+                )
+
         ProfileSection(
             onManageProfileClick = onManageProfileClick,
             onManageHobbiesClick = onManageHobbiesClick
         )
 
         AccountSection(
+            onSignOutClick = onSignOutClick,
             onDeleteAccountClick = onDeleteAccountClick
         )
     }
@@ -254,6 +320,7 @@ private fun ProfileSection(
 
 @Composable
 private fun AccountSection(
+    onSignOutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -261,6 +328,7 @@ private fun AccountSection(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(LocalSpacing.current.medium)
     ) {
+        SignOutButton(onClick = onSignOutClick)
         DeleteAccountButton(onClick = onDeleteAccountClick)
     }
 }
@@ -283,6 +351,17 @@ private fun ManageHobbiesButton(
     MenuButtonItem(
         text = stringResource(R.string.manage_hobbies),
         iconRes = R.drawable.ic_heart_smile,
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun SignOutButton(
+    onClick: () -> Unit,
+) {
+    MenuButtonItem(
+        text = stringResource(R.string.sign_out),
+        iconRes = R.drawable.ic_sign_out,
         onClick = onClick,
     )
 }

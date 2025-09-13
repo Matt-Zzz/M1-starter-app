@@ -21,6 +21,7 @@ import com.cpen321.usermanagement.ui.screens.ProfileScreenActions
 import com.cpen321.usermanagement.ui.screens.ProfileCompletionScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreen
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.CalendarViewModel
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
@@ -46,6 +47,7 @@ fun AppNavigation(
     // Initialize view models required for navigation-level scope
     val authViewModel: AuthViewModel = hiltViewModel()
     val profileViewModel: ProfileViewModel = hiltViewModel()
+    val calendarViewModel: CalendarViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
 
     // Handle navigation events from NavigationStateManager
@@ -63,6 +65,7 @@ fun AppNavigation(
         navController = navController,
         authViewModel = authViewModel,
         profileViewModel = profileViewModel,
+        calendarViewModel = calendarViewModel,
         mainViewModel = mainViewModel,
         navigationStateManager = navigationStateManager
     )
@@ -149,6 +152,7 @@ private fun AppNavHost(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel,
+    calendarViewModel: CalendarViewModel,
     mainViewModel: MainViewModel,
     navigationStateManager: NavigationStateManager
 ) {
@@ -186,10 +190,15 @@ private fun AppNavHost(
             ProfileScreen(
                 authViewModel = authViewModel,
                 profileViewModel = profileViewModel,
+                calendarViewModel = calendarViewModel,
                 actions = ProfileScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() },
                     onManageProfileClick = { navigationStateManager.navigateToManageProfile() },
                     onManageHobbiesClick = { navigationStateManager.navigateToManageHobbies() },
+                    onSignOutClick = { 
+                        authViewModel.signOut()
+                        navigationStateManager.handleSignOut()
+                    },
                     onAccountDeleted = { navigationStateManager.handleAccountDeletion() }
                 )
             )

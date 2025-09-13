@@ -24,6 +24,7 @@ class ProfileRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userInterface: UserInterface,
     private val hobbyInterface: HobbyInterface,
+    private val imageInterface: ImageInterface,
     private val tokenManager: TokenManager
 ) : ProfileRepository {
 
@@ -137,6 +138,36 @@ class ProfileRepositoryImpl @Inject constructor(
             Result.failure(e)
         } catch (e: retrofit2.HttpException) {
             Log.e(TAG, "HTTP error while getting available hobbies: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun uploadProfilePicture(imageUri: Uri): Result<String> {
+        return try {
+            val file = uriToFile(context, imageUri)
+            val requestFile = file.asRequestBody("image/*".toMediaType())
+            val body = MultipartBody.Part.createFormData("media", file.name, requestFile)
+            
+            val response = imageInterface.uploadPicture("", body) // Auth header is handled by interceptor
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!.image)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage = parseErrorMessage(errorBodyString, "Failed to upload profile picture.")
+                Log.e(TAG, "Failed to upload profile picture: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while uploading profile picture", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while uploading profile picture", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while uploading profile picture", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while uploading profile picture: ${e.code()}", e)
             Result.failure(e)
         }
     }
