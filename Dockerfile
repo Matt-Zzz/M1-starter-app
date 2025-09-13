@@ -1,10 +1,10 @@
 # ---------- Builder ----------
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm ci
-COPY . .
-RUN npm run build && npm prune --production
+COPY backend/ .
+RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build && npm prune --production
 
 # ---------- Runtime ----------
 FROM node:20-alpine
