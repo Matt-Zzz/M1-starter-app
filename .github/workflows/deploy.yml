@@ -41,5 +41,5 @@ jobs:
             chmod 600 .env
             
             sudo docker-compose down
-            sudo docker-compose --env-file .env build
+            timeout 600 sudo docker-compose --env-file .env build
             sudo docker-compose --env-file .env up -d
