@@ -31,7 +31,8 @@ export class CalendarService {
     try {
       this.setCredentials(accessToken);
       
-      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      const calendar = google.calendar('v3');
+      calendar.context._options.auth = this.oauth2Client as any;
       const now = new Date();
       const oneMonthFromNow = new Date();
       oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
@@ -49,7 +50,7 @@ export class CalendarService {
       const events = response.data.items || [];
       
       // Filter for CPEN 321 related events
-      const cpen321Events = events.filter(event => {
+      const cpen321Events = events.filter((event: any) => {
         if (!event.summary) return false;
         
         const summary = event.summary.toLowerCase();
@@ -62,7 +63,7 @@ export class CalendarService {
       // Sort by start time and limit results
       return cpen321Events
         .slice(0, maxResults)
-        .map(event => this.mapGoogleEventToCalendarEvent(event));
+        .map((event: any) => this.mapGoogleEventToCalendarEvent(event));
         
     } catch (error) {
       logger.error('Error fetching upcoming milestones:', error);
@@ -77,7 +78,8 @@ export class CalendarService {
     try {
       this.setCredentials(accessToken);
       
-      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      const calendar = google.calendar('v3');
+      calendar.context._options.auth = this.oauth2Client as any;
       const now = new Date();
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -93,7 +95,7 @@ export class CalendarService {
 
       const events = response.data.items || [];
       
-      return events.map(event => this.mapGoogleEventToCalendarEvent(event));
+      return events.map((event: any) => this.mapGoogleEventToCalendarEvent(event));
         
     } catch (error) {
       logger.error('Error fetching today\'s schedule:', error);
@@ -157,7 +159,8 @@ export class CalendarService {
     try {
       this.setCredentials(accessToken);
       
-      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      const calendar = google.calendar('v3');
+      calendar.context._options.auth = this.oauth2Client as any;
       
       // Format the event data
       const eventData = this.formatEventData(milestoneData, 'milestone');
@@ -186,7 +189,8 @@ export class CalendarService {
     try {
       this.setCredentials(accessToken);
       
-      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      const calendar = google.calendar('v3');
+      calendar.context._options.auth = this.oauth2Client as any;
       
       // Format the event data
       const eventData = this.formatEventData(taskData, 'task');
@@ -215,7 +219,8 @@ export class CalendarService {
     try {
       this.setCredentials(accessToken);
       
-      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      const calendar = google.calendar('v3');
+      calendar.context._options.auth = this.oauth2Client as any;
       
       await calendar.events.delete({
         calendarId: 'primary',

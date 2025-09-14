@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout
@@ -41,5 +42,5 @@ jobs:
             chmod 600 .env
             
             sudo docker-compose down
-            timeout 600 sudo docker-compose --env-file .env build
+            sudo timeout 600 docker-compose --env-file .env build
             sudo docker-compose --env-file .env up -d
